@@ -91,22 +91,22 @@ impl Client {
     ///
     /// This method is typically called within the `Client::new` method to automatically create a token when a new `Client` is created.
     pub async fn create_token(&self) -> Result<CreateTokenResponse, Box<dyn std::error::Error>> {
-        let response: CreateTokenResponse = self
-            .req_client
-            .post(URL_CREATE_TOKEN)
-            .body(
-                json!({
-                    "secret_id": self.secret_id.expose_secret(),
-                    "secret_key": self.secret_key.expose_secret(),
-                })
-                .to_string(),
-            )
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: CreateTokenResponse = response_to_json(
+            self.req_client
+                .post(URL_CREATE_TOKEN)
+                .body(
+                    json!({
+                        "secret_id": self.secret_id.expose_secret(),
+                        "secret_key": self.secret_key.expose_secret(),
+                    })
+                    .to_string(),
+                )
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
@@ -134,15 +134,15 @@ impl Client {
     pub async fn get_institutions(&self) -> Result<Vec<Institution>, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response: Vec<Institution> = self
-            .req_client
-            .get(URL_GET_INSTITUTIONS)
-            .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: Vec<Institution> = response_to_json(
+            self.req_client
+                .get(URL_GET_INSTITUTIONS)
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
@@ -179,33 +179,31 @@ impl Client {
     ) -> Result<EndUserAgreement, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response = self
-            .req_client
-            .post(URL_CREATE_END_USER_AGREEMENT)
-            .body(
-                json!({
-                    "institution_id": institution_id,
-                    "max_historical_days": max_historical_days,
-                    "access_valid_for_days": "30",
-                    "access_scope": [
-                        "balances",
-                        "details",
-                        "transactions"
-                    ]
-                })
-                .to_string(),
-            )
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .text()
-            .await?;
+        let response = response_to_json(
+            self.req_client
+                .post(URL_CREATE_END_USER_AGREEMENT)
+                .body(
+                    json!({
+                        "institution_id": institution_id,
+                        "max_historical_days": max_historical_days,
+                        "access_valid_for_days": "30",
+                        "access_scope": [
+                            "balances",
+                            "details",
+                            "transactions"
+                        ]
+                    })
+                    .to_string(),
+                )
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
-        let agreement: EndUserAgreement = serde_json::from_str(&response)?;
-
-        Ok(agreement)
+        Ok(response)
     }
 
     /// `list_requisitions` is an async method that sends a GET request to the `URL_REQUISITIONS` endpoint to retrieve a list of requisitions.
@@ -233,15 +231,15 @@ impl Client {
     ) -> Result<ListRequisitionsResponse, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response: ListRequisitionsResponse = self
-            .req_client
-            .get(URL_REQUISITIONS)
-            .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: ListRequisitionsResponse = response_to_json(
+            self.req_client
+                .get(URL_REQUISITIONS)
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
@@ -298,17 +296,17 @@ impl Client {
             request["agreement"] = json!(agreement_id);
         }
 
-        let response: Requisition = self
-            .req_client
-            .post(URL_REQUISITIONS)
-            .body(request.to_string())
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: Requisition = response_to_json(
+            self.req_client
+                .post(URL_REQUISITIONS)
+                .body(request.to_string())
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
@@ -344,22 +342,20 @@ impl Client {
     ) -> Result<ListTransactionsResponse, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response = self
-            .req_client
-            .get(format!(
-                "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/transactions",
-                account_id
-            ))
-            .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .text()
-            .await?;
+        let response = response_to_json(
+            self.req_client
+                .get(format!(
+                    "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/transactions",
+                    account_id
+                ))
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
-        let parsed: ListTransactionsResponse = serde_json::from_str(&response)?;
-
-        Ok(parsed)
+        Ok(response)
     }
 
     /// `list_balances` is an async method that sends a GET request to the `https://bankaccountdata.gocardless.com/api/v2/accounts/{account_id}/balances` endpoint to retrieve a list of balances for a specific account.
@@ -393,18 +389,18 @@ impl Client {
     ) -> Result<ListBalancesResponse, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response: ListBalancesResponse = self
-            .req_client
-            .get(format!(
-                "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/balances",
-                account_id
-            ))
-            .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: ListBalancesResponse = response_to_json(
+            self.req_client
+                .get(format!(
+                    "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/balances",
+                    account_id
+                ))
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
@@ -440,19 +436,35 @@ impl Client {
     ) -> Result<AccountDetailsResponse, Box<dyn std::error::Error>> {
         let access_token = self.created_token.clone().unwrap().access;
 
-        let response: AccountDetailsResponse = self
-            .req_client
-            .get(format!(
-                "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/details",
-                account_id
-            ))
-            .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: AccountDetailsResponse = response_to_json(
+            self.req_client
+                .get(format!(
+                    "https://bankaccountdata.gocardless.com/api/v2/accounts/{}/details",
+                    account_id
+                ))
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {}", access_token))
+                .send()
+                .await?,
+        )
+        .await?;
 
         Ok(response)
     }
+}
+
+async fn response_to_json<T: serde::de::DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, Box<dyn std::error::Error>> {
+    let name = response
+        .url()
+        .path()
+        .replace("/", "__slash__")
+        .replace("%", "__percent__");
+    let full = response.bytes().await?;
+    if let Err(err) = std::fs::write(&name, &full) {
+        eprintln!("ERROR: Couldn't write to {name}: {err}");
+    }
+
+    serde_json::from_slice(&full).map_err(Into::into)
 }

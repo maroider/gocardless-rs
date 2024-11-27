@@ -107,10 +107,10 @@ pub struct Transactions {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
-    pub transaction_id: String,
+    pub transaction_id: Option<String>,
     pub booking_date: String,
     pub value_date: Option<String>,
-    pub booking_date_time: String,
+    pub booking_date_time: Option<String>,
     pub value_date_time: Option<String>,
     pub transaction_amount: TransactionAmount,
     pub creditor_name: Option<String>,
@@ -158,7 +158,7 @@ pub struct ListBalancesResponse {
 pub struct Balance {
     pub balance_amount: BalanceAmount,
     pub balance_type: String,
-    pub reference_date: String,
+    pub reference_date: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
